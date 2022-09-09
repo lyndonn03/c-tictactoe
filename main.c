@@ -2,6 +2,8 @@
 #include <stdlib.h> // for randomizer
 #include <stdbool.h>
 #include <time.h>
+#include <math.h>
+
 #define UNITS 3
 #define PLAYER_NO 2
 
@@ -19,10 +21,10 @@ void print_board(char (*board)[UNITS]);
 void player_move(char (*board)[UNITS], short *point, Player *player);
 void ai_move(char (*board)[UNITS], short *point, Player *player);
 
-bool validate();
-bool validate_hor();
-bool validate_ver();
-bool validate_diag();
+bool validate(char (*board)[UNITS], short *point, char rep);
+bool validate_hor(char (*board)[UNITS], short *point, char rep);
+bool validate_ver(char (*board)[UNITS], short *point, char rep);
+bool validate_diag(char (*board)[UNITS], short *point, char rep);
 
 int main()
 {
@@ -34,14 +36,22 @@ int main()
     setup_gameplay(board, players, &gameplay);
     if (gameplay != 1 && gameplay != 2)
         gameplay = -1;
-        
+
     while (true)
     {
         curr_player = (++curr_player) % PLAYER_NO;
         players[curr_player].move(board, curr_point, &players[curr_player]);
         curr_turn++;
+
         if (players[curr_player].is_ai || gameplay == -1)
             print_board(board);
+
+        if (validate(board, curr_point, players[curr_player].rep))
+        {
+            printf("Player %d is the winner", curr_player);
+            break;
+        }
+
         if (curr_turn >= (UNITS * UNITS))
             break;
     }
@@ -53,7 +63,7 @@ int main()
 void setup_gameplay(char (*board)[UNITS], Player *players, int *gameplay)
 {
     char reps[] = {'x', 'o'};
-    puts("Choose opponent ( 1 => AI - Player, 2 => Player - AI, (any int) => Player - Player ):");
+    printf("Choose opponent ( 1 => AI - Player, 2 => Player - AI, (any int) => Player - Player ):");
     scanf(" %d", gameplay);
     printf("%d", *gameplay);
     for (int x = 0; x < PLAYER_NO; x++)
@@ -83,9 +93,9 @@ void enter_player(Player player[2], bool is_ai, short turn, char rep)
 
 void player_move(char (*board)[UNITS], short *point, Player *player)
 {
-    puts("Enter the row (1 - 3):");
+    printf("Enter the row (1 - 3):");
     scanf("%hi", &point[0]);
-    puts("Enter the column (1 - 3):");
+    printf("Enter the column (1 - 3):");
     scanf(" %hi", &point[1]);
     board[point[0] - 1][point[1] - 1] = player->rep;
 }
@@ -104,6 +114,60 @@ void ai_move(char (*board)[UNITS], short *point, Player *player)
     }
     board[point[0]][point[1]] = player->rep;
     puts("");
+}
+
+bool validate(char (*board)[UNITS], short *point, char rep)
+{
+
+    bool hor_res = validate_hor(board, point, rep);
+    bool ver_res = validate_ver(board, point, rep);
+    bool diag_res = validate_diag(board, point, rep);
+
+    return ver_res || hor_res || diag_res;
+}
+
+bool validate_hor(char (*board)[UNITS], short *point, char rep)
+{
+    int row = (int)point[0] - 1;
+    bool res = true;
+    for (int x = 0; x < UNITS; x++)
+        if (!(board[row][x] == rep))
+            res = false;
+    return res;
+}
+
+bool validate_ver(char (*board)[UNITS], short *point, char rep)
+{
+    int col = (int)point[1] - 1;
+    bool res = true;
+    for (int x = 0; x < UNITS; x++)
+        if (!(board[x][col] == rep))
+            res = false;
+    return res;
+}
+
+bool validate_diag(char (*board)[UNITS], short *point, char rep)
+{
+    int row = (int)point[0] - 1;
+    int col = (int)point[1] - 1;
+    int com = abs(row - col);
+    bool res = false;
+    if (row == col)
+        for (int x = 0; x < UNITS; x++)
+        {
+            res = board[x][x] == rep;
+            if (!res)
+                break;
+        }
+
+    if (!res && (row == col || com == 2))
+        for (int x = 0; x < UNITS; x++)
+        {
+            res = board[x][com - x] == rep;
+            if (!res)
+                break;
+        }
+    return res;
 }
 
 void print_board(char (*board)[UNITS])
