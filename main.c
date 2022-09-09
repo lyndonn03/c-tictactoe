@@ -1,6 +1,7 @@
 #include <stdio.h>  // io methods
 #include <stdlib.h> // for randomizer
 #include <stdbool.h>
+#include <string.h>
 #include <time.h>
 #include <math.h>
 
@@ -9,6 +10,7 @@
 
 typedef struct Player
 {
+    char name[25];
     char rep;
     int turn;
     bool is_ai;
@@ -48,7 +50,7 @@ int main()
 
         if (validate(board, curr_point, players[curr_player].rep))
         {
-            printf("Player %d is the winner", curr_player);
+            printf("Player %s is the winner..", players[curr_player].name);
             break;
         }
 
@@ -88,6 +90,13 @@ void enter_player(Player player[2], bool is_ai, short turn, char rep)
 {
     void *move = (is_ai) ? ai_move : player_move;
     Player new_player = {.rep = rep, .turn = turn, .move = move, .is_ai = is_ai};
+    if (is_ai)
+        strcpy(new_player.name, "Bot");
+    else
+    {
+        printf("\nEnter your name: ");
+        scanf(" %s", (new_player.name));
+    }
     player[turn] = new_player;
 }
 
@@ -129,27 +138,32 @@ bool validate(char (*board)[UNITS], short *point, char rep)
 bool validate_hor(char (*board)[UNITS], short *point, char rep)
 {
     int row = (int)point[0] - 1;
-    bool res = true;
+    bool res = false;
     for (int x = 0; x < UNITS; x++)
-        if (!(board[row][x] == rep))
-            res = false;
+    {
+        res = (board[row][x] == rep);
+        if (!res)
+            break;
+    }
     return res;
 }
 
 bool validate_ver(char (*board)[UNITS], short *point, char rep)
 {
     int col = (int)point[1] - 1;
-    bool res = true;
+    bool res = false;
     for (int x = 0; x < UNITS; x++)
-        if (!(board[x][col] == rep))
-            res = false;
+    {
+        res = (board[x][col] == rep);
+        if (!res)
+            break;
+    }
     return res;
 }
 
 bool validate_diag(char (*board)[UNITS], short *point, char rep)
 {
-    int row = (int)point[0] - 1;
-    int col = (int)point[1] - 1;
+    int row = (int)point[0] - 1, col = (int)point[1] - 1;
     int com = abs(row - col);
     bool res = false;
     if (row == col)
@@ -174,7 +188,6 @@ void print_board(char (*board)[UNITS])
 {
     puts("\nLive Board:");
     puts("___________________");
-
     for (int x = 0; x < UNITS; x++)
     {
         char rep_col[UNITS];
@@ -184,6 +197,5 @@ void print_board(char (*board)[UNITS])
         printf("|  %c  |  %c  |  %c  |\n", rep_col[0], rep_col[1], rep_col[2]);
         puts("|_____|_____|_____|");
     }
-
     puts("\n");
 }
