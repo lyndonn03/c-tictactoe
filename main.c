@@ -13,6 +13,7 @@ typedef struct Player
     void (*move)(char (*board)[UNITS], short *point, struct Player *player);
 } Player;
 
+void setup_gameplay(char (*board)[UNITS], Player *player, int *gameplay);
 void enter_player(Player players[PLAYER_NO], bool is_ai, short turn, char rep);
 void print_board(char (*board)[UNITS]);
 void player_move(char (*board)[UNITS], short *point, Player *player);
@@ -26,19 +27,38 @@ bool validate_diag();
 int main()
 {
     int gameplay = -1;
-    char board[][UNITS] = {{' ', ' ', ' '}, {' ', ' ', ' '}, {' ', ' ', ' '}};
-    char reps[] = {'x', 'o'};
+    char board[UNITS][UNITS] = {{' ', ' ', ' '}, {' ', ' ', ' '}, {' ', ' ', ' '}};
     Player players[PLAYER_NO];
     short curr_turn = 0, curr_player = -1, curr_point[] = {0, 0};
 
-    puts("Choose opponent ( 1 => AI - Player, 2 => Player - AI, (any int) => Player - Player ):");
-    scanf(" %d", &gameplay);
-    if(gameplay != 1 || gameplay != 2)
+    setup_gameplay(board, players, &gameplay);
+    if (gameplay != 1 && gameplay != 2)
         gameplay = -1;
+        
+    while (true)
+    {
+        curr_player = (++curr_player) % PLAYER_NO;
+        players[curr_player].move(board, curr_point, &players[curr_player]);
+        curr_turn++;
+        if (players[curr_player].is_ai || gameplay == -1)
+            print_board(board);
+        if (curr_turn >= (UNITS * UNITS))
+            break;
+    }
 
+    print_board(board);
+    return 0;
+}
+
+void setup_gameplay(char (*board)[UNITS], Player *players, int *gameplay)
+{
+    char reps[] = {'x', 'o'};
+    puts("Choose opponent ( 1 => AI - Player, 2 => Player - AI, (any int) => Player - Player ):");
+    scanf(" %d", gameplay);
+    printf("%d", *gameplay);
     for (int x = 0; x < PLAYER_NO; x++)
     {
-        switch (gameplay)
+        switch (*gameplay)
         {
         case 1:
             enter_player(players, ((x + 2) % 2) == 0, x, reps[(x + 2) % 2]);
@@ -51,20 +71,7 @@ int main()
             break;
         }
     }
-
     print_board(board);
-    while (true)
-    {
-        curr_player = (++curr_player) % PLAYER_NO;
-        players[curr_player].move(board, curr_point, &players[curr_player]);
-        curr_turn++;
-        if (players[curr_player].is_ai || gameplay == -1)
-            print_board(board);
-        if (curr_turn >= (UNITS * UNITS))
-            break;
-    }
-    print_board(board);
-    return 0;
 }
 
 void enter_player(Player player[2], bool is_ai, short turn, char rep)
