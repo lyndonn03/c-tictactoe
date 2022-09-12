@@ -44,7 +44,7 @@ int main()
         curr_player = (++curr_player) % PLAYER_NO;
         players[curr_player].move(board, curr_point, &players[curr_player]);
         curr_turn++;
-
+        system("clear");
         if (players[curr_player].is_ai || gameplay == -1)
             print_board(board);
 
@@ -57,7 +57,6 @@ int main()
         if (curr_turn >= (UNITS * UNITS))
             break;
     }
-
     print_board(board);
     return 0;
 }
